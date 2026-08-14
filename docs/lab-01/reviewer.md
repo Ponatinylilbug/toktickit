@@ -1,6 +1,6 @@
-# Lab 1 — Peer Review Record  (fill this in)
+# Lab 1 — Peer Review Record
 
-**Author:** <your name> — <student id> — GitHub: @<username>
+**Author:** Jinjuta Antant — <student id> — GitHub: @Ponatinylilbug
 **Peer reviewer:** <partner name> — <student id> — GitHub: @<username>
 
 ## Pull Requests I authored (reviewed by my partner)
