@@ -11,9 +11,95 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Issue 3 — Create and seed IT request categories
+// Ticket Category (e.g., Account and Access, Hardware, Software, Network)
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// Related System affected by the ticket (e.g., Email, Campus Wi-Fi, VPN, etc.)
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// Development Requester User (Simulated login identity for Lab 2)
+model RequesterUser {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  department String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tickets    Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// Support Ticket
+model Ticket {
+  id                Int           @id @default(autoincrement())
+  ticketNumber      String        @unique
+  summary           String
+  description       String
+  requestedPriority Priority      @default(MEDIUM)
+  currentStatus     TicketStatus  @default(NEW)
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  requester         RequesterUser @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  category          Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  relatedSystem     RelatedSystem @relation(fields: [relatedSystemId], references: [id], onDelete: Restrict)
+  attachments       Attachment[]
+
+  @@index([requesterId])
+  @@index([categoryId])
+  @@index([relatedSystemId])
+  @@index([currentStatus])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Ticket Attachment with Soft-Removal support
+model Attachment {
+  id            Int       @id @default(autoincrement())
+  ticketId      Int
+  fileName      String
+  originalName  String
+  fileSize      Int
+  mimeType      String
+  filePath      String
+  isRemoved     Boolean   @default(false)
+  removedAt     DateTime?
+  removalReason String?
+  createdAt     DateTime  @default(now())
+
+  ticket        Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([isRemoved])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }
