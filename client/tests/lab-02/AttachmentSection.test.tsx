@@ -40,6 +40,7 @@ describe("AttachmentSection Component (UI-06, AC-04, AC-05, BR-10..13)", () => {
     localStorage.clear();
     localStorage.setItem("toktickit_current_requester", JSON.stringify(mockRequester));
     vi.restoreAllMocks();
+    vi.spyOn(api, "fetchActiveRequesters").mockResolvedValue([mockRequester]);
   });
 
   it("renders active attachments list with formatted sizes and download buttons (AC-11)", () => {

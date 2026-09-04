@@ -23,7 +23,7 @@ export default function Header({ activeTab = "my-tickets", onTabChange }: Header
               type="button"
               className={`btn btn-sm ${activeTab === "my-tickets" ? "btn-light fw-bold" : "btn-outline-light"}`}
               style={{ fontSize: "0.875rem", borderRadius: "6px" }}
-              onClick={() => onTabChange("my-tickets")}
+              onClick={() => onTabChange?.("my-tickets")}
               data-testid="nav-my-tickets"
             >
               My Tickets
@@ -32,7 +32,7 @@ export default function Header({ activeTab = "my-tickets", onTabChange }: Header
               type="button"
               className={`btn btn-sm ${activeTab === "create-ticket" ? "btn-light fw-bold" : "btn-outline-light"}`}
               style={{ fontSize: "0.875rem", borderRadius: "6px" }}
-              onClick={() => onTabChange("create-ticket")}
+              onClick={() => onTabChange?.("create-ticket")}
               data-testid="nav-create-ticket"
             >
               + Create Ticket

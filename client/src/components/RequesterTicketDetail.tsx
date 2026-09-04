@@ -31,7 +31,7 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
     } finally {
       setIsLoading(false);
     }
-  }, [ticketId, currentRequester]);
+  }, [ticketId, currentRequester?.id]);
 
   useEffect(() => {
     loadTicket();
