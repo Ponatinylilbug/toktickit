@@ -1,12 +1,14 @@
 import React from "react";
 import { useRequester } from "../context/RequesterContext.js";
 
+export type NavTab = "my-tickets" | "create-ticket" | "home";
+
 interface HeaderProps {
-  activeTab?: "home" | "create-ticket";
-  onTabChange?: (tab: "home" | "create-ticket") => void;
+  activeTab?: NavTab;
+  onTabChange?: (tab: NavTab) => void;
 }
 
-export default function Header({ activeTab = "home", onTabChange }: HeaderProps) {
+export default function Header({ activeTab = "my-tickets", onTabChange }: HeaderProps) {
   const { currentRequester, openSelector } = useRequester();
 
   return (
@@ -20,12 +22,12 @@ export default function Header({ activeTab = "home", onTabChange }: HeaderProps)
           <nav className="d-flex align-items-center gap-1 ms-2">
             <button
               type="button"
-              className={`btn btn-sm ${activeTab === "home" ? "btn-light fw-bold" : "btn-outline-light"}`}
+              className={`btn btn-sm ${activeTab === "my-tickets" ? "btn-light fw-bold" : "btn-outline-light"}`}
               style={{ fontSize: "0.85rem" }}
-              onClick={() => onTabChange("home")}
-              data-testid="nav-home"
+              onClick={() => onTabChange("my-tickets")}
+              data-testid="nav-my-tickets"
             >
-              System Check
+              My Tickets
             </button>
             <button
               type="button"
@@ -35,6 +37,15 @@ export default function Header({ activeTab = "home", onTabChange }: HeaderProps)
               data-testid="nav-create-ticket"
             >
               + Create Ticket
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${activeTab === "home" ? "btn-light fw-bold" : "btn-outline-light"}`}
+              style={{ fontSize: "0.85rem" }}
+              onClick={() => onTabChange("home")}
+              data-testid="nav-home"
+            >
+              Diagnostics
             </button>
           </nav>
         )}

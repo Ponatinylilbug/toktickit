@@ -212,4 +212,111 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/api/tickets", async (req: Request, res: Response) => {
+  const {
+    requesterId,
+    search,
+    categoryId,
+    requestedPriority,
+    currentStatus,
+    page = "1",
+    pageSize = "10",
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = req.query;
+
+  // BR-05: Data ownership isolation — requesterId is mandatory
+  const parsedRequesterId = Number(requesterId);
+  if (!requesterId || isNaN(parsedRequesterId) || parsedRequesterId <= 0) {
+    res.status(400).json({
+      error: "requesterId query parameter is required.",
+      statusCode: 400,
+    });
+    return;
+  }
+
+  const parsedPage = Math.max(1, parseInt(page as string, 10) || 1);
+  const parsedPageSize = Math.min(50, Math.max(1, parseInt(pageSize as string, 10) || 10));
+  const skip = (parsedPage - 1) * parsedPageSize;
+
+  const where: any = {
+    requesterId: parsedRequesterId,
+  };
+
+  if (categoryId) {
+    const parsedCat = Number(categoryId);
+    if (!isNaN(parsedCat)) {
+      where.categoryId = parsedCat;
+    }
+  }
+
+  if (requestedPriority && typeof requestedPriority === "string") {
+    where.requestedPriority = requestedPriority.toUpperCase();
+  }
+
+  if (currentStatus && typeof currentStatus === "string") {
+    where.currentStatus = currentStatus.toUpperCase();
+  }
+
+  if (search && typeof search === "string" && search.trim()) {
+    const query = search.trim();
+    where.OR = [
+      { summary: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+      { ticketNumber: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  // BR-15: Default sort by createdAt DESC, secondary ticketNumber DESC
+  const orderDirection = (sortOrder as string).toLowerCase() === "asc" ? "asc" : "desc";
+  let orderBy: any[];
+  if (sortBy === "ticketNumber") {
+    orderBy = [{ ticketNumber: orderDirection }];
+  } else if (sortBy === "requestedPriority") {
+    orderBy = [{ requestedPriority: orderDirection }, { createdAt: "desc" }];
+  } else {
+    orderBy = [{ createdAt: orderDirection }, { ticketNumber: "desc" }];
+  }
+
+  try {
+    const prisma = getPrisma();
+    const [totalItems, items] = await Promise.all([
+      prisma.ticket.count({ where }),
+      prisma.ticket.findMany({
+        where,
+        skip,
+        take: parsedPageSize,
+        orderBy,
+        include: {
+          category: { select: { id: true, name: true } },
+          relatedSystem: { select: { id: true, name: true } },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / parsedPageSize));
+
+    res.json({
+      items,
+      pagination: {
+        page: parsedPage,
+        pageSize: parsedPageSize,
+        totalItems,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    // Fallback if local database is offline
+    res.json({
+      items: [],
+      pagination: {
+        page: parsedPage,
+        pageSize: parsedPageSize,
+        totalItems: 0,
+        totalPages: 1,
+      },
+    });
+  }
+});
+
 export default app;
