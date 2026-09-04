@@ -108,3 +108,62 @@ export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
   return res.json();
 }
 
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface PaginatedTicketsResult {
+  items: Ticket[];
+  pagination: PaginationMeta;
+}
+
+export interface GetTicketsParams {
+  requesterId: number;
+  search?: string;
+  categoryId?: number | string;
+  requestedPriority?: string;
+  currentStatus?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export async function fetchMyTickets(params: GetTicketsParams): Promise<PaginatedTicketsResult> {
+  const query = new URLSearchParams();
+  query.set("requesterId", params.requesterId.toString());
+
+  if (params.search && params.search.trim()) {
+    query.set("search", params.search.trim());
+  }
+  if (params.categoryId) {
+    query.set("categoryId", params.categoryId.toString());
+  }
+  if (params.requestedPriority) {
+    query.set("requestedPriority", params.requestedPriority);
+  }
+  if (params.currentStatus) {
+    query.set("currentStatus", params.currentStatus);
+  }
+  if (params.page) {
+    query.set("page", params.page.toString());
+  }
+  if (params.pageSize) {
+    query.set("pageSize", params.pageSize.toString());
+  }
+  if (params.sortBy) {
+    query.set("sortBy", params.sortBy);
+  }
+  if (params.sortOrder) {
+    query.set("sortOrder", params.sortOrder);
+  }
+
+  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch tickets");
+  }
+  return res.json();
+}
