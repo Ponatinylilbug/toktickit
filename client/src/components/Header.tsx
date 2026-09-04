@@ -1,7 +1,7 @@
 import React from "react";
 import { useRequester } from "../context/RequesterContext.js";
 
-export type NavTab = "my-tickets" | "create-ticket" | "home";
+export type NavTab = "my-tickets" | "create-ticket" | "home" | "ticket-detail";
 
 interface HeaderProps {
   activeTab?: NavTab;
