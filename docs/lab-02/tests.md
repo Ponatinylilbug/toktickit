@@ -13,10 +13,10 @@ Testing follows a multi-tiered Test-Driven Development (TDD) approach:
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **UNIT-01** | Unit | BR-01, FR-04 | Ticket number formatting helper | Returns string matching `^TKT-\d{4}-\d{6}$` | `server/tests/lab-02/unit/ticket-number.test.ts` | Planned |
-| **UNIT-02** | Unit | BR-10, BR-11 | File type and size validator | Rejects non-images/non-PDF and files > 5MB | `server/tests/lab-02/unit/file-validator.test.ts` | Planned |
-| **API-01** | API | AC-01, BR-02 | Create valid ticket via API | Returns 201 Created with status `New` and unique Ticket Number | `server/tests/lab-02/create-ticket.api.test.ts` | Planned |
-| **API-02** | API | AC-02, BR-06 | Create ticket validation failure (missing summary) | Returns 400 with specific field error message | `server/tests/lab-02/create-ticket.api.test.ts` | Planned |
+| **UNIT-01** | Unit | BR-01, FR-04 | Ticket number formatting helper | Returns string matching `^TKT-\d{4}-\d{6}$` | `server/tests/lab-02/unit/ticket-number.test.ts` | Passed |
+| **UNIT-02** | Unit | BR-10, BR-11 | File type and size validator | Rejects non-images/non-PDF and files > 5MB | `server/tests/lab-02/unit/file-validator.test.ts` | Passed |
+| **API-01** | API | AC-01, BR-02 | Create valid ticket via API | Returns 201 Created with status `New` and unique Ticket Number | `server/tests/lab-02/create-ticket.api.test.ts` | Passed |
+| **API-02** | API | AC-02, BR-06 | Create ticket validation failure (missing summary) | Returns 400 with specific field error message | `server/tests/lab-02/create-ticket.api.test.ts` | Passed |
 | **API-03** | API | AC-06, BR-04 | List active Development Requesters | Returns 200 with only active requesters (no inactive users) | `server/tests/lab-02/requesters.api.test.ts` | Passed |
 | **API-04** | API | AC-07, BR-05 | My Tickets ownership filtering | Returns only tickets for specified `requesterId` | `server/tests/lab-02/my-tickets.api.test.ts` | Planned |
 | **API-05** | API | AC-08, BR-15 | My Tickets search, filter, and pagination | Returns filtered items with matching pagination metadata | `server/tests/lab-02/my-tickets.api.test.ts` | Planned |
@@ -25,8 +25,8 @@ Testing follows a multi-tiered Test-Driven Development (TDD) approach:
 | **API-08** | API | AC-11, AC-13 | Download active vs soft-removed attachment | Returns 200 stream for active; 410/404 for removed | `server/tests/lab-02/attachments.api.test.ts` | Planned |
 | **API-09** | API | AC-12, BR-13 | Soft-remove attachment with reason | Returns 200; sets `isRemoved: true` & persists reason | `server/tests/lab-02/attachments.api.test.ts` | Planned |
 | **UI-01** | UI | AC-06, AC-07 | Requester Selection dropdown & header display | Switches active user and stores context in app state | `client/tests/lab-02/RequesterSelector.test.tsx` | Passed |
-| **UI-02** | UI | AC-02, BR-14 | Create Ticket inline validation & state retention | Shows inline error messages on invalid submit; keeps values | `client/tests/lab-02/CreateTicket.test.tsx` | Planned |
-| **UI-03** | UI | AC-01 | Create Ticket submission success dialog | Displays generated Ticket Number upon successful creation | `client/tests/lab-02/CreateTicket.test.tsx` | Planned |
+| **UI-02** | UI | AC-02, BR-14 | Create Ticket inline validation & state retention | Shows inline error messages on invalid submit; keeps values | `client/tests/lab-02/CreateTicket.test.tsx` | Passed |
+| **UI-03** | UI | AC-01 | Create Ticket submission success dialog | Displays generated Ticket Number upon successful creation | `client/tests/lab-02/CreateTicket.test.tsx` | Passed |
 | **UI-04** | UI | AC-08 | My Tickets table pagination & filter interactions | Updates table data when filter changes or page clicked | `client/tests/lab-02/MyTickets.test.tsx` | Planned |
 | **UI-05** | UI | AC-09, AC-12 | Ticket Detail read-only view & soft-remove modal | Shows read-only fields; opens modal and triggers remove | `client/tests/lab-02/RequesterTicketDetail.test.tsx` | Planned |
 | **UI-06** | UI | AC-04, AC-05 | AttachmentSection file picker rules | Rejects >5MB / invalid types and disables when 5 files | `client/tests/lab-02/AttachmentSection.test.tsx` | Planned |
