@@ -40,3 +40,71 @@ export async function fetchActiveRequesters(): Promise<RequesterUser[]> {
   }
   return res.json();
 }
+
+export interface RelatedSystem {
+  id: number;
+  name: string;
+}
+
+export interface Ticket {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  requestedPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  currentStatus: string;
+  requesterId: number;
+  categoryId: number;
+  relatedSystemId: number;
+  createdAt: string;
+  updatedAt: string;
+  attachments?: any[];
+}
+
+export interface CreateTicketInput {
+  requesterId: number;
+  categoryId: number;
+  relatedSystemId: number;
+  requestedPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  summary: string;
+  description: string;
+}
+
+export async function fetchActiveCategories(): Promise<Category[]> {
+  const res = await fetch(`${API_URL}/api/categories`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+  return res.json();
+}
+
+export async function fetchActiveRelatedSystems(): Promise<RelatedSystem[]> {
+  const res = await fetch(`${API_URL}/api/related-systems`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch related systems");
+  }
+  return res.json();
+}
+
+export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
+  const res = await fetch(`${API_URL}/api/tickets`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-requester-id": input.requesterId.toString(),
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const message = errorData.error || (errorData.details && errorData.details[0]) || "Failed to create ticket";
+    const error = new Error(message);
+    (error as any).details = errorData.details;
+    (error as any).status = res.status;
+    throw error;
+  }
+
+  return res.json();
+}
+
