@@ -16,6 +16,7 @@
 | 6 | "Design Prisma schema models for RequesterUser, Ticket, Attachment, Category, and RelatedSystem with idempotent seed data." | Planned database entities, foreign keys, enums, soft-removal fields, and repeatable seeding. |
 | 7 | "Implement TDD Supertest suite for ticket creation, validation errors, and unique ticket number generation." | Planned failing API tests before writing backend controller logic. |
 | 8 | "Implement React CreateTicket component with Zen Green styling, field validation, and busy state." | Planned UI form adhering to inline error placement and design tokens. |
+| 9 | "Implement Issue #15 Development Requester selector and context: TDD API test for GET /api/requesters, endpoint with active user filtering, RequesterContext, Zen Green Header, and UI test." | Implemented API-03 (Supertest) & UI-01 (Vitest), filtered inactive users, created RequesterContext with localStorage persistence, and Header with Change Requester action. |
 
 ---
 

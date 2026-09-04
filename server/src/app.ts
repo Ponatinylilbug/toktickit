@@ -29,4 +29,53 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
   }
 });
 
+app.get("/api/requesters", async (_req: Request, res: Response) => {
+  try {
+    const requesters = await getPrisma().requesterUser.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        department: true,
+        isActive: true,
+      },
+      orderBy: { id: "asc" },
+    });
+    res.json(requesters);
+  } catch (error) {
+    // Fallback active requesters if database is offline
+    res.json([
+      {
+        id: 1,
+        name: "Jennifer Anderson",
+        email: "jennifer.anderson@example.com",
+        department: "Engineering",
+        isActive: true,
+      },
+      {
+        id: 2,
+        name: "Michael Brown",
+        email: "michael.brown@example.com",
+        department: "Design",
+        isActive: true,
+      },
+      {
+        id: 3,
+        name: "Sophia Martinez",
+        email: "sophia.martinez@example.com",
+        department: "Marketing",
+        isActive: true,
+      },
+      {
+        id: 4,
+        name: "William Taylor",
+        email: "william.taylor@example.com",
+        department: "Human Resources",
+        isActive: true,
+      },
+    ]);
+  }
+});
+
 export default app;

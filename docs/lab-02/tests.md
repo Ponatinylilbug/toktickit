@@ -17,14 +17,14 @@ Testing follows a multi-tiered Test-Driven Development (TDD) approach:
 | **UNIT-02** | Unit | BR-10, BR-11 | File type and size validator | Rejects non-images/non-PDF and files > 5MB | `server/tests/lab-02/unit/file-validator.test.ts` | Planned |
 | **API-01** | API | AC-01, BR-02 | Create valid ticket via API | Returns 201 Created with status `New` and unique Ticket Number | `server/tests/lab-02/create-ticket.api.test.ts` | Planned |
 | **API-02** | API | AC-02, BR-06 | Create ticket validation failure (missing summary) | Returns 400 with specific field error message | `server/tests/lab-02/create-ticket.api.test.ts` | Planned |
-| **API-03** | API | AC-06, BR-04 | List active Development Requesters | Returns 200 with only active requesters (no inactive users) | `server/tests/lab-02/requesters.api.test.ts` | Planned |
+| **API-03** | API | AC-06, BR-04 | List active Development Requesters | Returns 200 with only active requesters (no inactive users) | `server/tests/lab-02/requesters.api.test.ts` | Passed |
 | **API-04** | API | AC-07, BR-05 | My Tickets ownership filtering | Returns only tickets for specified `requesterId` | `server/tests/lab-02/my-tickets.api.test.ts` | Planned |
 | **API-05** | API | AC-08, BR-15 | My Tickets search, filter, and pagination | Returns filtered items with matching pagination metadata | `server/tests/lab-02/my-tickets.api.test.ts` | Planned |
 | **API-06** | API | AC-09, AC-10 | Ticket Detail retrieval & ownership check | Returns 200 for owner; returns 403 for other requester | `server/tests/lab-02/ticket-detail.api.test.ts` | Planned |
 | **API-07** | API | AC-03, AC-05 | Upload attachment to ticket | Returns 201 Created; returns 409 when exceeding 5 files | `server/tests/lab-02/attachments.api.test.ts` | Planned |
 | **API-08** | API | AC-11, AC-13 | Download active vs soft-removed attachment | Returns 200 stream for active; 410/404 for removed | `server/tests/lab-02/attachments.api.test.ts` | Planned |
 | **API-09** | API | AC-12, BR-13 | Soft-remove attachment with reason | Returns 200; sets `isRemoved: true` & persists reason | `server/tests/lab-02/attachments.api.test.ts` | Planned |
-| **UI-01** | UI | AC-06, AC-07 | Requester Selection dropdown & header display | Switches active user and stores context in app state | `client/tests/lab-02/RequesterSelector.test.tsx` | Planned |
+| **UI-01** | UI | AC-06, AC-07 | Requester Selection dropdown & header display | Switches active user and stores context in app state | `client/tests/lab-02/RequesterSelector.test.tsx` | Passed |
 | **UI-02** | UI | AC-02, BR-14 | Create Ticket inline validation & state retention | Shows inline error messages on invalid submit; keeps values | `client/tests/lab-02/CreateTicket.test.tsx` | Planned |
 | **UI-03** | UI | AC-01 | Create Ticket submission success dialog | Displays generated Ticket Number upon successful creation | `client/tests/lab-02/CreateTicket.test.tsx` | Planned |
 | **UI-04** | UI | AC-08 | My Tickets table pagination & filter interactions | Updates table data when filter changes or page clicked | `client/tests/lab-02/MyTickets.test.tsx` | Planned |

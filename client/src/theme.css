@@ -1,0 +1,114 @@
+:root {
+  --color-primary-green: #006B3C;
+  --color-secondary-green: #0B7A46;
+  --color-pale-green: #EAF6EF;
+  --color-page-bg: #F5F7F6;
+  --color-surface-card: #FFFFFF;
+  --color-card-border: #E0E5E2;
+  --color-text-main: #1F2923;
+  --color-text-muted: #59655E;
+  --color-input-bg: #FFFFFF;
+  --color-readonly-bg: #F0F3F1;
+  --color-border-input: #CCD4CF;
+  --color-error: #C92A2A;
+  --color-error-bg: #FFF5F5;
+  --color-warning: #D97706;
+  --color-warning-bg: #FEF3C7;
+  --color-success: #2B8A3E;
+  --color-success-bg: #EBFBEE;
+}
+
+body {
+  background-color: var(--color-page-bg);
+  color: var(--color-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.zen-header {
+  background-color: var(--color-primary-green);
+  color: #ffffff;
+  padding: 12px 24px;
+}
+
+.zen-header-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zen-header-brand:hover {
+  color: #ffffff;
+}
+
+.zen-user-pill {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zen-btn-primary {
+  background-color: var(--color-primary-green);
+  color: #ffffff;
+  border: 1px solid var(--color-primary-green);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.zen-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-secondary-green);
+  border-color: var(--color-secondary-green);
+  color: #ffffff;
+}
+
+.zen-btn-secondary {
+  background-color: #ffffff;
+  color: var(--color-primary-green);
+  border: 1px solid var(--color-primary-green);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.zen-btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-pale-green);
+  color: var(--color-primary-green);
+}
+
+.zen-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.zen-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.zen-modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 540px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
