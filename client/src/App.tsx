@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { checkSystem, Category } from "./api.js";
+import { checkSystem, Category, Ticket } from "./api.js";
 import { RequesterProvider, useRequester } from "./context/RequesterContext.js";
 import Header, { NavTab } from "./components/Header.js";
 import RequesterSelectorModal from "./components/RequesterSelectorModal.js";
 import CreateTicket from "./components/CreateTicket.js";
 import MyTickets from "./components/MyTickets.js";
+import RequesterTicketDetail from "./components/RequesterTicketDetail.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
 function AppContent() {
   const { currentRequester, openSelector } = useRequester();
   const [activeTab, setActiveTab] = useState<NavTab>(() => (currentRequester ? "my-tickets" : "home"));
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -28,9 +30,25 @@ function AppContent() {
     }
   }
 
+  const handleSelectTicket = (ticket: Ticket) => {
+    setSelectedTicketId(ticket.id);
+    setActiveTab("ticket-detail");
+  };
+
+  const handleBackToMyTickets = () => {
+    setSelectedTicketId(null);
+    setActiveTab("my-tickets");
+  };
+
   return (
     <div>
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          if (tab !== "ticket-detail") setSelectedTicketId(null);
+          setActiveTab(tab);
+        }}
+      />
       <RequesterSelectorModal />
 
       <main className="container py-4" style={{ maxWidth: 1040 }}>
@@ -45,7 +63,7 @@ function AppContent() {
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-success"
-                  onClick={() => setActiveTab("my-tickets")}
+                  onClick={handleBackToMyTickets}
                   data-testid="banner-my-tickets-button"
                 >
                   My Tickets
@@ -55,7 +73,10 @@ function AppContent() {
                 <button
                   type="button"
                   className="btn btn-sm zen-btn-primary"
-                  onClick={() => setActiveTab("create-ticket")}
+                  onClick={() => {
+                    setSelectedTicketId(null);
+                    setActiveTab("create-ticket");
+                  }}
                   data-testid="banner-create-ticket-button"
                 >
                   + Create Ticket
@@ -78,15 +99,26 @@ function AppContent() {
 
         {activeTab === "my-tickets" && (
           <MyTickets
-            onCreateTicketClick={() => setActiveTab("create-ticket")}
+            onCreateTicketClick={() => {
+              setSelectedTicketId(null);
+              setActiveTab("create-ticket");
+            }}
+            onSelectTicket={handleSelectTicket}
+          />
+        )}
+
+        {activeTab === "ticket-detail" && selectedTicketId && (
+          <RequesterTicketDetail
+            ticketId={selectedTicketId}
+            onBack={handleBackToMyTickets}
           />
         )}
 
         {activeTab === "create-ticket" && (
           <CreateTicket
-            onCancel={() => setActiveTab("my-tickets")}
-            onTicketCreated={(_ticket) => {
-              // Stay on confirmation view so user can inspect ticket number
+            onCancel={handleBackToMyTickets}
+            onTicketCreated={(ticket) => {
+              setSelectedTicketId(ticket.id);
             }}
           />
         )}
@@ -139,3 +171,4 @@ export default function App() {
     </RequesterProvider>
   );
 }
+
