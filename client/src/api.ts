@@ -24,3 +24,19 @@ export async function checkSystem(): Promise<SystemStatus> {
   const categories: Category[] = await catRes.json();
   return { online: true, categories };
 }
+
+export interface RequesterUser {
+  id: number;
+  name: string;
+  email: string;
+  department: string;
+  isActive: boolean;
+}
+
+export async function fetchActiveRequesters(): Promise<RequesterUser[]> {
+  const res = await fetch(`${API_URL}/api/requesters`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch requesters");
+  }
+  return res.json();
+}
