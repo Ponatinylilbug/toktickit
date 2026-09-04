@@ -58,10 +58,10 @@ Testing follows a multi-tiered Test-Driven Development (TDD) approach:
 
 ## 4. Responsive and Visual Checklist
 
-- [ ] **Desktop (≥992px):** Centered main container, full multi-column form, complete table columns.
-- [ ] **Tablet (768px–991px):** Two-column form layout, table with horizontal scroll protection.
-- [ ] **Mobile (<768px):** Vertical single-column stack, card list representation for tickets, large touch targets.
-- [ ] **Color Contrast & Theme:** Proper `#006B3C` primary green and Zen Green palette adherence.
+- [x] **Desktop (≥992px):** Centered main container, full multi-column form, complete table columns.
+- [x] **Tablet (768px–991px):** Two-column form layout, table with horizontal scroll protection.
+- [x] **Mobile (<768px):** Vertical single-column stack, card list representation for tickets, large touch targets.
+- [x] **Color Contrast & Theme:** Proper `#006B3C` primary green and Zen Green palette adherence.
 
 ---
 
@@ -81,17 +81,36 @@ npx playwright test
 ---
 
 ## 6. Final Results
-*(To be populated after implementation and test execution)*
 
 ```bash
-# Server Test Results:
-# [Pending implementation]
+# Server Test Results (Vitest + Supertest):
+#  ✓ tests/lab-02/unit/ticket-number.test.ts (3 tests)
+#  ✓ tests/lab-02/unit/file-validator.test.ts (3 tests)
+#  ✓ tests/lab-02/requesters.api.test.ts (1 test)
+#  ✓ tests/lab-02/ticket-detail.api.test.ts (3 tests)
+#  ✓ tests/lab-02/my-tickets.api.test.ts (4 tests)
+#  ✓ tests/lab-02/create-ticket.api.test.ts (6 tests)
+#  ✓ tests/lab-02/attachments.api.test.ts (8 tests)
+#  ✓ tests/lab-01/health.test.ts (1 test)
+#  ✓ tests/lab-01/categories.test.ts (1 test)
+# Test Files  9 passed (9)
+# Tests       30 passed (30)
 
-# Client Test Results:
-# [Pending implementation]
+# Client Test Results (Vitest + React Testing Library):
+#  ✓ tests/lab-02/AttachmentSection.test.tsx (4 tests)
+#  ✓ tests/lab-02/RequesterTicketDetail.test.tsx (3 tests)
+#  ✓ tests/lab-01/App.test.tsx (3 tests)
+#  ✓ tests/lab-02/MyTickets.test.tsx (4 tests)
+#  ✓ tests/lab-02/RequesterTicketFlow.test.tsx (1 test)
+#  ✓ tests/lab-02/CreateTicket.test.tsx (3 tests)
+#  ✓ tests/lab-02/RequesterSelector.test.tsx (4 tests)
+# Test Files  7 passed (7)
+# Tests       22 passed (22)
 
 # E2E Test Results:
-# [Pending implementation]
+#  ✓ e2e/lab-02/requester-ticket-flow.spec.ts (2 tests covering AC-01..AC-15)
+# Test Files  1 passed (1)
+# Tests       2 passed (2)
 ```
 
 ---
