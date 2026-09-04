@@ -17,6 +17,12 @@ function AppContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
+  React.useEffect(() => {
+    if (currentRequester && activeTab === "home") {
+      setActiveTab("my-tickets");
+    }
+  }, [currentRequester, activeTab]);
+
   async function handleCheck() {
     setState("loading");
     setErrorMessage("");
@@ -124,7 +130,7 @@ function AppContent() {
         )}
 
         {activeTab === "home" && (
-          <div className="zen-card p-4 mx-auto" style={{ maxWidth: 840 }}>
+          <div className="zen-card p-4 mx-auto" style={{ maxWidth: 840 }} data-testid="diagnostics-panel">
             <h1 className="h4 mb-3" style={{ color: "var(--color-primary-green)" }}>
               Service Desk <span className="text-secondary fw-normal fs-6">| System Diagnostics</span>
             </h1>

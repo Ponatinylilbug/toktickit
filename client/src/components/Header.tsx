@@ -18,12 +18,11 @@ export default function Header({ activeTab = "my-tickets", onTabChange }: Header
           TokTickIT <span style={{ opacity: 0.85, fontSize: "0.95rem", fontWeight: 400 }}>| IT Service Desk</span>
         </span>
 
-        {onTabChange && (
-          <nav className="d-flex align-items-center gap-1 ms-2">
+          <nav className="d-flex align-items-center gap-2 ms-3">
             <button
               type="button"
               className={`btn btn-sm ${activeTab === "my-tickets" ? "btn-light fw-bold" : "btn-outline-light"}`}
-              style={{ fontSize: "0.85rem" }}
+              style={{ fontSize: "0.875rem", borderRadius: "6px" }}
               onClick={() => onTabChange("my-tickets")}
               data-testid="nav-my-tickets"
             >
@@ -32,23 +31,13 @@ export default function Header({ activeTab = "my-tickets", onTabChange }: Header
             <button
               type="button"
               className={`btn btn-sm ${activeTab === "create-ticket" ? "btn-light fw-bold" : "btn-outline-light"}`}
-              style={{ fontSize: "0.85rem" }}
+              style={{ fontSize: "0.875rem", borderRadius: "6px" }}
               onClick={() => onTabChange("create-ticket")}
               data-testid="nav-create-ticket"
             >
               + Create Ticket
             </button>
-            <button
-              type="button"
-              className={`btn btn-sm ${activeTab === "home" ? "btn-light fw-bold" : "btn-outline-light"}`}
-              style={{ fontSize: "0.85rem" }}
-              onClick={() => onTabChange("home")}
-              data-testid="nav-home"
-            >
-              Diagnostics
-            </button>
           </nav>
-        )}
       </div>
 
       <div className="d-flex align-items-center gap-2">

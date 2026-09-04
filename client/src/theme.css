@@ -24,12 +24,14 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 .zen-header {
   background-color: var(--color-primary-green);
   color: #ffffff;
-  padding: 12px 24px;
+  padding: 12px 28px;
+  box-shadow: 0 2px 8px rgba(0, 107, 60, 0.15);
 }
 
 .zen-header-brand {
@@ -40,6 +42,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: -0.02em;
 }
 
 .zen-header-brand:hover {
@@ -47,47 +50,54 @@ body {
 }
 
 .zen-user-pill {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(4px);
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .zen-btn-primary {
   background-color: var(--color-primary-green);
   color: #ffffff;
   border: 1px solid var(--color-primary-green);
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
 }
 
 .zen-btn-primary:hover:not(:disabled) {
   background-color: var(--color-secondary-green);
   border-color: var(--color-secondary-green);
   color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 107, 60, 0.25);
 }
 
 .zen-btn-secondary {
   background-color: #ffffff;
   color: var(--color-primary-green);
   border: 1px solid var(--color-primary-green);
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
 }
 
 .zen-btn-secondary:hover:not(:disabled) {
   background-color: var(--color-pale-green);
   color: var(--color-primary-green);
+  border-color: var(--color-secondary-green);
 }
 
 .zen-card {
   background-color: var(--color-surface-card);
   border: 1px solid var(--color-card-border);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .zen-modal-overlay {
@@ -96,7 +106,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(15, 23, 19, 0.55);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,9 +117,36 @@ body {
 
 .zen-modal-content {
   background-color: #ffffff;
-  border-radius: 8px;
+  border-radius: 12px;
   width: 100%;
   max-width: 540px;
-  padding: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 28px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-card-border);
 }
+
+/* Custom Zen Green form focus */
+.form-control:focus, .form-select:focus {
+  border-color: var(--color-secondary-green) !important;
+  box-shadow: 0 0 0 0.2rem rgba(11, 122, 70, 0.18) !important;
+}
+
+/* Table styling */
+.table > :not(caption) > * > * {
+  padding: 12px 16px;
+}
+
+.table-hover > tbody > tr:hover {
+  background-color: var(--color-pale-green) !important;
+}
+
+/* Active page pagination */
+.pagination .page-item.active .page-link {
+  background-color: var(--color-primary-green);
+  border-color: var(--color-primary-green);
+}
+
+.pagination .page-link {
+  color: var(--color-primary-green);
+}
+
