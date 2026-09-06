@@ -46,6 +46,7 @@ describe("RequesterTicketDetail Component (UI-05, AC-09, AC-10, AC-12)", () => {
     localStorage.clear();
     localStorage.setItem("toktickit_current_requester", JSON.stringify(mockRequester));
     vi.restoreAllMocks();
+    vi.spyOn(api, "fetchActiveRequesters").mockResolvedValue([mockRequester]);
   });
 
   it("renders read-only ticket details, classification, and status badges (AC-09)", async () => {

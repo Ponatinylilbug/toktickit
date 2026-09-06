@@ -32,6 +32,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
+app.get("/", (_req: Request, res: Response) => {
+  res.send("<h2>TokTickIT Backend API is Online!</h2><p>Please open the frontend application here: <a href='http://localhost:5173'>http://localhost:5173</a></p>");
+});
+
 app.get("/api/health", (_req: Request, res: Response) => {
   res.status(200).json({ status: "ok", service: "TokTickIT API" });
 });
