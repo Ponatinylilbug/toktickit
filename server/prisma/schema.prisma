@@ -11,6 +11,67 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
+// Enums
+enum UserRole {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_REQUESTER
+  RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
+}
+
+// ---------------------------------------------------------------------------
+// System User (Unified model for Requester, IT Staff, and Administrator)
+model User {
+  id                 Int            @id @default(autoincrement())
+  name               String
+  email              String         @unique
+  passwordHash       String
+  role               UserRole       @default(REQUESTER)
+  department         String?
+  isActive           Boolean        @default(true)
+  mustChangePassword Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  ticketsSubmitted   Ticket[]       @relation("RequesterTickets")
+  ticketsAssigned    Ticket[]       @relation("StaffAssignedTickets")
+  comments           Comment[]
+  notes              InternalNote[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+// ---------------------------------------------------------------------------
+// Development Requester User (Retained for backward compatibility)
+model RequesterUser {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  department String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
 // Ticket Category (e.g., Account and Access, Hardware, Software, Network)
 model Category {
   id        Int      @id @default(autoincrement())
@@ -30,19 +91,6 @@ model RelatedSystem {
 }
 
 // ---------------------------------------------------------------------------
-// Development Requester User (Simulated login identity for Lab 2)
-model RequesterUser {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  department String
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  tickets    Ticket[]
-}
-
-// ---------------------------------------------------------------------------
 // Support Ticket
 model Ticket {
   id                Int           @id @default(autoincrement())
@@ -50,19 +98,25 @@ model Ticket {
   summary           String
   description       String
   requestedPriority Priority      @default(MEDIUM)
+  itPriority        Priority?
   currentStatus     TicketStatus  @default(NEW)
   requesterId       Int
+  ownerId           Int?
   categoryId        Int
   relatedSystemId   Int
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  requester         RequesterUser @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  requester         User          @relation("RequesterTickets", fields: [requesterId], references: [id], onDelete: Restrict)
+  owner             User?         @relation("StaffAssignedTickets", fields: [ownerId], references: [id], onDelete: SetNull)
   category          Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   relatedSystem     RelatedSystem @relation(fields: [relatedSystemId], references: [id], onDelete: Restrict)
   attachments       Attachment[]
+  comments          Comment[]
+  notes             InternalNote[]
 
   @@index([requesterId])
+  @@index([ownerId])
   @@index([categoryId])
   @@index([relatedSystemId])
   @@index([currentStatus])
@@ -90,16 +144,35 @@ model Attachment {
   @@index([isRemoved])
 }
 
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
+// ---------------------------------------------------------------------------
+// Public Comment (Visible to Requester, IT Staff, and Administrators)
+model Comment {
+  id                Int      @id @default(autoincrement())
+  ticketId          Int
+  authorId          Int
+  message           String
+  isSystemGenerated Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  ticket            Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author            User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([authorId])
 }
 
-enum TicketStatus {
-  NEW
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
+// ---------------------------------------------------------------------------
+// Internal Note (Confidential, visible strictly to IT Staff and Administrators)
+model InternalNote {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  note      String
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([authorId])
 }
