@@ -17,10 +17,11 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
   const { currentRequester, openSelector } = useRequester();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [pageSize, setPageSize] = useState<number>(4);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    pageSize: 10,
+    pageSize: 4,
     totalItems: 0,
     totalPages: 1,
   });
@@ -54,7 +55,19 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
 
   // Fetch tickets for current requester (AC-07: data ownership isolation)
   const loadTickets = useCallback(async () => {
-    if (!currentRequester) return;
+    // Check if browser/tab is offline
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setError("Failed to load tickets. Please check your network connection.");
+      setIsLoading(false);
+      setTickets([]);
+      return;
+    }
+
+    if (!currentRequester || !currentRequester.id) {
+      setTickets([]);
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -66,20 +79,53 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
         requestedPriority: priority || undefined,
         currentStatus: status || undefined,
         page,
-        pageSize: 10,
+        pageSize,
       });
 
-      setTickets(res.items);
-      setPagination(res.pagination);
+      // Ensure all returned tickets belong to the active requester
+      const userTickets = (res.items || []).filter(
+        (t) => !t.requesterId || t.requesterId === currentRequester.id
+      );
+
+      setTickets(userTickets);
+      setPagination(
+        res.pagination || {
+          page,
+          pageSize,
+          totalItems: userTickets.length,
+          totalPages: Math.max(1, Math.ceil(userTickets.length / pageSize)),
+        }
+      );
     } catch (err: any) {
-      setError(err.message || "Failed to load tickets");
+      setError("Failed to load tickets. Please check your network connection.");
+      setTickets([]);
     } finally {
       setIsLoading(false);
     }
-  }, [currentRequester, search, categoryId, priority, status, page]);
+  }, [currentRequester?.id, search, categoryId, priority, status, page, pageSize]);
 
+  // Load tickets on mount and whenever loadTickets dependencies change
   useEffect(() => {
     loadTickets();
+  }, [loadTickets]);
+
+  // Listen to browser online/offline events
+  useEffect(() => {
+    const handleOffline = () => {
+      setError("Failed to load tickets. Please check your network connection.");
+      setIsLoading(false);
+      setTickets([]);
+    };
+    const handleOnline = () => {
+      loadTickets();
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
   }, [loadTickets]);
 
   // When requester changes, reset to page 1
@@ -115,9 +161,15 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
   const startItem = pagination.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
   const endItem = Math.min(pagination.totalItems, pagination.page * pagination.pageSize);
 
-  if (!currentRequester) {
+  if (!currentRequester && !error) {
     return (
-      <div className="zen-card p-4 mx-auto my-4 text-center" style={{ maxWidth: 640 }} data-testid="no-requester-state">
+      <div className="zen-card p-5 mx-auto my-4 text-center" style={{ maxWidth: 640 }} data-testid="no-requester-state">
+        <div
+          className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+          style={{ width: 64, height: 64, backgroundColor: "var(--color-pale-green)", color: "var(--color-primary-green)" }}
+        >
+          <span style={{ fontSize: "1.75rem" }}>👤</span>
+        </div>
         <h2 className="h4 fw-bold mb-2" style={{ color: "var(--color-primary-green)" }}>
           Development Requester Required
         </h2>
@@ -133,6 +185,32 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
 
   return (
     <div className="zen-card p-4 mx-auto my-4" style={{ maxWidth: 1040 }} data-testid="my-tickets-card">
+      {/* Topmost Error Alert Banner */}
+      {error && (
+        <div
+          className="alert alert-danger border border-danger d-flex justify-content-between align-items-center mb-4 p-3 shadow-sm rounded"
+          role="alert"
+          data-testid="tickets-error-alert"
+          style={{ backgroundColor: "#f8d7da", borderColor: "#f5c2c7", color: "#842029" }}
+        >
+          <div className="d-flex align-items-center gap-2">
+            <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>⚠️</span>
+            <div>
+              <strong className="d-block">Unable to load tickets. Please check your server or network connection.</strong>
+              <small className="text-danger-emphasis">{error}</small>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-danger btn-sm px-3 fw-bold shadow-sm"
+            onClick={loadTickets}
+            data-testid="tickets-retry-button"
+          >
+            ↻ Retry
+          </button>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 mb-4 border-bottom">
         <div>
@@ -140,7 +218,13 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
             My Tickets
           </h1>
           <p className="text-muted small mb-0">
-            Showing tickets requested by <strong>{currentRequester.name}</strong> ({currentRequester.department})
+            {currentRequester ? (
+              <>
+                Showing tickets requested by <strong>{currentRequester.name}</strong> ({currentRequester.department})
+              </>
+            ) : (
+              "IT Support Tickets"
+            )}
           </p>
         </div>
 
@@ -243,15 +327,6 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
         </div>
       </div>
 
-      {/* Error state */}
-      {error && (
-        <div className="alert alert-danger d-flex justify-content-between align-items-center" data-testid="tickets-error-alert">
-          <span>{error}</span>
-          <button type="button" className="btn btn-sm btn-outline-danger" onClick={loadTickets}>
-            Retry
-          </button>
-        </div>
-      )}
 
       {/* Loading state */}
       {isLoading && (
@@ -356,34 +431,55 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
 
       {/* Pagination Bar */}
       {!isLoading && !error && pagination.totalItems > 0 && (
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3 mt-3 border-top" data-testid="pagination-bar">
-          <span className="small text-muted" data-testid="pagination-summary">
-            Showing {startItem} to {endItem} of {pagination.totalItems} tickets
-          </span>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 mt-3 border-top" data-testid="pagination-bar">
+          <div className="d-flex align-items-center flex-wrap gap-3">
+            <span className="small text-muted fw-semibold" data-testid="pagination-summary">
+              Showing <strong>{startItem} to {endItem}</strong> of <strong>{pagination.totalItems}</strong> tickets (Page {pagination.page} of {pagination.totalPages})
+            </span>
+            <div className="d-flex align-items-center gap-1 small text-muted">
+              <span>Per page:</span>
+              <div className="btn-group btn-group-sm" role="group" aria-label="Items per page">
+                {[3, 4].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    className={`btn btn-sm ${pageSize === size ? "btn-success fw-bold" : "btn-outline-secondary"}`}
+                    onClick={() => {
+                      setPageSize(size);
+                      setPage(1);
+                    }}
+                    data-testid={`page-size-${size}-btn`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           <nav aria-label="Ticket pagination">
-            <ul className="pagination pagination-sm mb-0">
+            <ul className="pagination mb-0 gap-1">
               <li className={`page-item ${pagination.page <= 1 ? "disabled" : ""}`}>
                 <button
                   type="button"
-                  className="page-link"
+                  className="btn btn-sm btn-outline-secondary px-3"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={pagination.page <= 1}
                   data-testid="prev-page-button"
                 >
-                  Previous
+                  ← Previous
                 </button>
               </li>
 
               {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pNum) => (
-                <li key={pNum} className={`page-item ${pNum === pagination.page ? "active" : ""}`}>
+                <li key={pNum} className="page-item">
                   <button
                     type="button"
-                    className="page-link"
+                    className={`btn btn-sm ${pNum === pagination.page ? "zen-btn-primary fw-bold" : "btn-outline-secondary"} px-3`}
                     onClick={() => setPage(pNum)}
                     data-testid={`page-button-${pNum}`}
                   >
-                    {pNum}
+                    Page {pNum}
                   </button>
                 </li>
               ))}
@@ -391,12 +487,12 @@ export default function MyTickets({ onCreateTicketClick, onSelectTicket }: MyTic
               <li className={`page-item ${pagination.page >= pagination.totalPages ? "disabled" : ""}`}>
                 <button
                   type="button"
-                  className="page-link"
+                  className="btn btn-sm btn-outline-secondary px-3"
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={pagination.page >= pagination.totalPages}
                   data-testid="next-page-button"
                 >
-                  Next
+                  Next →
                 </button>
               </li>
             </ul>
