@@ -8,6 +8,8 @@ import { generateTicketNumber } from "./utils/ticket-number.js";
 import { validateAttachment } from "./utils/file-validator.js";
 import { authRouter } from "./routes/auth.js";
 import { staffRouter } from "./routes/staff.js";
+import { commentsRouter } from "./routes/comments.js";
+import { notesRouter } from "./routes/notes.js";
 
 export const app = express();
 
@@ -17,6 +19,8 @@ app.use(express.json());
 // Lab 3 route modules
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
+app.use("/api/tickets", commentsRouter);
+app.use("/api/tickets", notesRouter);
 
 const uploadsDir = path.resolve("uploads");
 if (!fs.existsSync(uploadsDir)) {
