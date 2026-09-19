@@ -106,6 +106,22 @@ export default function AttachmentSection({
   const handleUpload = async () => {
     if (!selectedFile || !currentRequester) return;
 
+    // Check size limit (5MB)
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setFileError("File size exceeds 5MB limit. Please choose a smaller file.");
+      return;
+    }
+
+    // Check extension & type (JPG, PNG, WEBP, PDF)
+    const lowerName = selectedFile.name.toLowerCase();
+    const hasValidExt = ALLOWED_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+    const hasValidMime = ALLOWED_MIME_TYPES.includes(selectedFile.type);
+
+    if (!hasValidExt && !hasValidMime) {
+      setFileError("Invalid file format. Only JPG, PNG, WEBP, and PDF files are permitted.");
+      return;
+    }
+
     setIsUploading(true);
     setUploadError(null);
     try {

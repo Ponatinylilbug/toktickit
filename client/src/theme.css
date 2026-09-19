@@ -50,16 +50,17 @@ body {
 }
 
 .zen-user-pill {
-  background-color: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(4px);
-  padding: 6px 14px;
-  border-radius: 20px;
+  /* Remove background and border to avoid dark box */
+  background-color: transparent;
+  backdrop-filter: none;
+  padding: 0;
+  border-radius: 0;
   font-size: 0.875rem;
   display: flex;
   align-items: center;
   gap: 10px;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: none;
 }
 
 .zen-btn-primary {
@@ -106,8 +107,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 19, 0.55);
-  backdrop-filter: blur(3px);
+  background-color: transparent; /* removed dark overlay */
+  /* backdrop-filter: blur(3px); */
   display: flex;
   align-items: center;
   justify-content: center;

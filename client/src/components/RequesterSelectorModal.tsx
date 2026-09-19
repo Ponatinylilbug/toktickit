@@ -9,10 +9,14 @@ export default function RequesterSelectorModal() {
     requesters,
     isLoading,
     error,
+    setErrorState,
+    setLoadingState,
     isSelectorOpen,
     closeSelector,
     reloadRequesters,
   } = useRequester();
+
+
 
   const [selectedId, setSelectedId] = useState<number | "">("");
 
@@ -26,6 +30,8 @@ export default function RequesterSelectorModal() {
       setSelectedId("");
     }
   }, [currentRequester, requesters]);
+
+
 
   if (!isSelectorOpen) {
     return null;
@@ -57,37 +63,39 @@ export default function RequesterSelectorModal() {
           >
             👤
           </div>
-          <h2 className="h4 fw-bold mt-3 mb-1" style={{ color: "var(--color-text-main)" }}>
+          <h4 className="fw-bold mt-2 mb-1" style={{ color: "var(--color-primary-green)" }}>
             Select Development Requester
-          </h2>
+          </h4>
           <p className="text-muted small mb-0" style={{ maxWidth: 440, margin: "0 auto", lineHeight: 1.4 }}>
             Choose a development requester to simulate the current requester context. This selector is for Lab 2 development testing only and is not a login screen.
           </p>
         </div>
 
-        {isLoading && (
-          <div className="text-center py-4" data-testid="requester-loading">
-            <div className="spinner-border text-success" role="status">
-              <span className="visually-hidden">Loading requesters...</span>
-            </div>
-            <p className="text-muted small mt-2">Loading active development requesters…</p>
-          </div>
-        )}
 
-        {error && !isLoading && (
-          <div className="alert alert-danger" role="alert" data-testid="requester-error">
-            <p className="mb-2 fw-semibold">Failed to load requesters</p>
-            <p className="small mb-3">{error}</p>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-danger"
-              onClick={reloadRequesters}
-              data-testid="requester-retry-button"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+
+          {error && !isLoading && (
+            <div className="alert alert-danger" role="alert" data-testid="requester-error">
+              <p className="mb-2 fw-semibold">Failed to load requesters. Please check your network connection.</p>
+              <p className="small mb-3">{error}</p>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                onClick={reloadRequesters}
+                data-testid="requester-retry-button"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="text-center py-4" data-testid="requester-loading">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Loading requesters...</span>
+              </div>
+              <p className="text-muted small mt-2">Loading active development requesters…</p>
+            </div>
+          )}
 
         {!isLoading && !error && requesters.length === 0 && (
           <div className="alert alert-warning" role="alert" data-testid="requester-empty">
@@ -144,16 +152,14 @@ export default function RequesterSelectorModal() {
 
             {/* Bottom Actions */}
             <div className="d-flex justify-content-end gap-2 pt-2 border-top">
-              {currentRequester && (
-                <button
-                  type="button"
-                  className="btn zen-btn-secondary px-3"
-                  onClick={closeSelector}
-                  data-testid="requester-cancel-button"
-                >
-                  Cancel
-                </button>
-              )}
+              <button
+                type="button"
+                className="btn zen-btn-secondary px-3"
+                onClick={closeSelector}
+                data-testid="requester-cancel-button"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 className="btn zen-btn-primary px-4 d-inline-flex align-items-center gap-2"

@@ -209,22 +209,13 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
       <AttachmentSection
         ticketId={ticket.id}
         attachments={ticket.attachments || []}
-        onAttachmentUploaded={(newAtt) => {
-          setTicket((prev) =>
-            prev ? { ...prev, attachments: [...(prev.attachments || []), newAtt] } : null
-          );
+        onAttachmentUploaded={async () => {
+          // Re-fetch fresh ticket details including updated attachments
+          await loadTicket();
         }}
-        onAttachmentRemoved={(removedId, updated) => {
-          setTicket((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  attachments: (prev.attachments || []).map((a) =>
-                    a.id === removedId ? updated : a
-                  ),
-                }
-              : null
-          );
+        onAttachmentRemoved={async () => {
+          // Re-fetch fresh ticket details including updated attachments
+          await loadTicket();
         }}
       />
     </div>

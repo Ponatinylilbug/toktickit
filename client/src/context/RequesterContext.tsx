@@ -9,11 +9,21 @@ interface RequesterContextType {
   requesters: RequesterUser[];
   isLoading: boolean;
   error: string | null;
+  setLoadingState: (val: boolean) => void;
+  setErrorState: (msg: string | null) => void;
   isSelectorOpen: boolean;
   openSelector: () => void;
   closeSelector: () => void;
   reloadRequesters: () => Promise<void>;
 }
+
+const DEFAULT_REQUESTER: RequesterUser = {
+  id: 1,
+  name: "Jennifer Anderson",
+  email: "jennifer.anderson@example.com",
+  department: "Engineering",
+  isActive: true,
+};
 
 const RequesterContext = createContext<RequesterContextType | undefined>(undefined);
 
@@ -21,15 +31,22 @@ export function RequesterProvider({ children }: { children: React.ReactNode }) {
   const [currentRequester, setCurrentRequesterState] = useState<RequesterUser | null>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : null;
+      if (saved) return JSON.parse(saved);
     } catch {
-      return null;
+      // ignore
     }
+    return null;
   });
 
   const [requesters, setRequesters] = useState<RequesterUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const setLoadingState = (val: boolean) => {
+    setIsLoading(val);
+  };
   const [error, setError] = useState<string | null>(null);
+  const setErrorState = (msg: string | null) => {
+    setError(msg);
+  };
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
 
   const reloadRequesters = useCallback(async () => {
@@ -41,15 +58,15 @@ export function RequesterProvider({ children }: { children: React.ReactNode }) {
       const activeUsers = data.filter((u) => u.isActive);
       setRequesters(activeUsers);
 
-      // If currentRequester is set, ensure it still exists in active users;
-      // if not set yet, we leave it or prompt selection
+      // Preserve current requester if still active
       setCurrentRequesterState((prev) => {
         if (!prev) return null;
         const matched = activeUsers.find((u) => u.id === prev.id);
         return matched || null;
       });
     } catch (err: any) {
-      setError(err?.message || "Failed to load requesters");
+      // Explicit error message for network/offline failures
+      setError('Failed to fetch requesters. Connection error.');
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +76,6 @@ export function RequesterProvider({ children }: { children: React.ReactNode }) {
     reloadRequesters();
   }, [reloadRequesters]);
 
-  // If initial load completes and there's no current requester, open selector automatically
   useEffect(() => {
     if (!isLoading && !currentRequester && requesters.length > 0) {
       setIsSelectorOpen(true);
@@ -77,15 +93,16 @@ export function RequesterProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const openSelector = useCallback(() => {
+    // When the selector is opened, attempt to fetch the latest requesters.
+    // This will also set loading state and capture any errors.
+    reloadRequesters();
     setIsSelectorOpen(true);
-  }, []);
+  }, [reloadRequesters]);
 
   const closeSelector = useCallback(() => {
-    // Only allow closing if a user is already selected
-    if (currentRequester) {
-      setIsSelectorOpen(false);
-    }
-  }, [currentRequester]);
+    setIsSelectorOpen(false);
+  }, []);
+
 
   return (
     <RequesterContext.Provider
@@ -95,6 +112,8 @@ export function RequesterProvider({ children }: { children: React.ReactNode }) {
         requesters,
         isLoading,
         error,
+        setErrorState,
+        setLoadingState,
         isSelectorOpen,
         openSelector,
         closeSelector,

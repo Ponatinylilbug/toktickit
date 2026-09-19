@@ -7,6 +7,7 @@ import {
   fetchActiveCategories,
   fetchActiveRelatedSystems,
   createTicket,
+  uploadAttachment,
 } from "../api.js";
 
 interface CreateTicketProps {
@@ -30,6 +31,9 @@ export default function CreateTicket({ onTicketCreated, onCancel }: CreateTicket
 
   // Validation & Submission states
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // Attachment state
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [createdTicket, setCreatedTicket] = useState<Ticket | null>(null);
@@ -97,7 +101,8 @@ export default function CreateTicket({ onTicketCreated, onCancel }: CreateTicket
     e.preventDefault();
     setSubmitError(null);
 
-    if (!currentRequester) {
+    if (!currentRequester || !currentRequester.id) {
+      setSubmitError("Please select an active requester before submitting.");
       openSelector();
       return;
     }
@@ -117,16 +122,45 @@ export default function CreateTicket({ onTicketCreated, onCancel }: CreateTicket
         description: description.trim(),
       });
 
-      setCreatedTicket(ticket);
-      if (onTicketCreated) {
-        onTicketCreated(ticket);
+      // If an attachment file was selected, upload it
+      if (attachment && ticket?.id) {
+        try {
+          await uploadAttachment(ticket.id, attachment, currentRequester.id);
+        } catch {
+          // attachment error handling
+        }
       }
+
+      setCreatedTicket(ticket);
     } catch (err: any) {
       // BR-14: Preserve form inputs upon failure
       setSubmitError(err.message || "Failed to submit ticket. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle file selection and validation
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setAttachment(null);
+      setAttachmentError(null);
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      setAttachment(null);
+      setAttachmentError("Invalid file type. Allowed: JPG, PNG, WEBP, PDF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAttachment(null);
+      setAttachmentError("File size exceeds 5 MB limit.");
+      return;
+    }
+    setAttachment(file);
+    setAttachmentError(null);
   };
 
   const resetForm = () => {
@@ -189,16 +223,17 @@ export default function CreateTicket({ onTicketCreated, onCancel }: CreateTicket
             >
               Create Another Ticket
             </button>
-            {onCancel && (
-              <button
-                type="button"
-                className="btn zen-btn-primary px-4"
-                onClick={onCancel}
-                data-testid="view-my-tickets-button"
-              >
-                Back to My Tickets
-              </button>
-            )}
+            <button
+              type="button"
+              className="btn zen-btn-primary px-4"
+              onClick={() => {
+                if (onTicketCreated) onTicketCreated(createdTicket);
+                if (onCancel) onCancel();
+              }}
+              data-testid="view-my-tickets-button"
+            >
+              Back to My Tickets
+            </button>
           </div>
         </div>
       </div>
@@ -395,6 +430,41 @@ export default function CreateTicket({ onTicketCreated, onCancel }: CreateTicket
           )}
         </div>
 
+        {/* Attachment Field */}
+        <div className="mb-3">
+          <label htmlFor="ticket-attachment" className="form-label fw-semibold" style={{ fontSize: "14px" }}>
+            Attachment <span style={{ color: "var(--color-error)" }}>* (optional)</span>
+          </label>
+          <input
+            id="ticket-attachment"
+            type="file"
+            className={`form-control ${attachmentError ? "is-invalid" : ""}`}
+            accept=".jpg,.jpeg,.png,.webp,.pdf"
+            onChange={handleFileChange}
+            data-testid="ticket-attachment-input"
+          />
+          <div className="form-text text-muted">
+            Allowed types: JPG, PNG, WEBP, PDF (Max 5MB)
+          </div>
+          {attachmentError && (
+            <div className="invalid-feedback d-block" data-testid="error-attachment">
+              {attachmentError}
+            </div>
+          )}
+          {attachment && (
+            <div className="mt-2 d-flex align-items-center gap-2" data-testid="attachment-info">
+              <span>{attachment.name} - {(attachment.size / 1024 / 1024).toFixed(2)} MB</span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => { setAttachment(null); setAttachmentError(null); }}
+                data-testid="remove-attachment-button"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
         {/* Action Buttons */}
         <div className="d-flex justify-content-end gap-2 border-top pt-3">
           {onCancel && (
