@@ -10,6 +10,7 @@ import { authRouter } from "./routes/auth.js";
 import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { notesRouter } from "./routes/notes.js";
+import { adminRouter } from "./routes/admin.js";
 
 export const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
 app.use("/api/tickets", notesRouter);
+app.use("/api/admin", adminRouter);
 
 const uploadsDir = path.resolve("uploads");
 if (!fs.existsSync(uploadsDir)) {
