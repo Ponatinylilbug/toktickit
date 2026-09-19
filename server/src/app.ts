@@ -6,11 +6,17 @@ import path from "path";
 import { getPrisma } from "./prisma.js";
 import { generateTicketNumber } from "./utils/ticket-number.js";
 import { validateAttachment } from "./utils/file-validator.js";
+import { authRouter } from "./routes/auth.js";
+import { staffRouter } from "./routes/staff.js";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Lab 3 route modules
+app.use("/api/auth", authRouter);
+app.use("/api/staff", staffRouter);
 
 const uploadsDir = path.resolve("uploads");
 if (!fs.existsSync(uploadsDir)) {
