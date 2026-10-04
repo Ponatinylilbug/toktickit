@@ -55,8 +55,11 @@ export default function UserManagement() {
         },
         token
       );
-      setUsers(res.data);
-      setPagination(res.pagination);
+      const userList = (res as any).users || (res as any).data || [];
+      setUsers(Array.isArray(userList) ? userList : []);
+      if (res.pagination) {
+        setPagination(res.pagination);
+      }
     } catch (err: any) {
       setFeedback({ type: "error", text: err.message || "Failed to load users." });
     } finally {
@@ -125,6 +128,7 @@ export default function UserManagement() {
             role,
             department: department.trim() || undefined,
             password: initialPassword || undefined,
+            temporaryPassword: initialPassword || undefined,
           },
           token
         );
@@ -326,6 +330,13 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && users.length === 0 && (
+        <div className="text-center py-5 text-muted" data-testid="admin-empty-state">
+          <p className="mb-0">No users found matching the selected criteria.</p>
         </div>
       )}
 

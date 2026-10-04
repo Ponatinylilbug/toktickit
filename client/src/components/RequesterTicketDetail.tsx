@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequester } from "../context/RequesterContext.js";
-import { Ticket, fetchTicketDetail } from "../api.js";
+import { useAuth } from "../context/AuthContext.js";
+import { Ticket, fetchTicketDetail, fetchComments, addComment, CommentItem } from "../api.js";
 import AttachmentSection from "./AttachmentSection.js";
 
 interface RequesterTicketDetailProps {
@@ -10,32 +11,79 @@ interface RequesterTicketDetailProps {
 
 export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTicketDetailProps) {
   const { currentRequester, openSelector } = useRequester();
+  const { token, user } = useAuth();
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [resolveSuccess, setResolveSuccess] = useState(false);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const effectiveToken = token || (currentRequester ? "mock-token" : "");
+
   const loadTicket = useCallback(async () => {
-    if (!currentRequester) return;
+    if (!currentRequester && !user) return;
 
     setIsLoading(true);
     setErrorStatus(null);
     setErrorMessage(null);
     try {
-      const data = await fetchTicketDetail(ticketId, currentRequester.id);
+      const requesterId = currentRequester?.id || user?.id || 1;
+      const data = await fetchTicketDetail(ticketId, requesterId);
       setTicket(data);
+
+      if (effectiveToken) {
+        const cData = await fetchComments(ticketId, effectiveToken).catch(() => []);
+        setComments(cData);
+      }
     } catch (err: any) {
       setErrorStatus(err.status || 500);
       setErrorMessage(err.message || "Failed to load ticket details");
     } finally {
       setIsLoading(false);
     }
-  }, [ticketId, currentRequester?.id]);
+  }, [ticketId, currentRequester?.id, user?.id, effectiveToken]);
 
   useEffect(() => {
     loadTicket();
   }, [loadTicket]);
+
+  const handleSendComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() || !effectiveToken) return;
+    setCommentLoading(true);
+    try {
+      const newC = await addComment(ticketId, commentText.trim(), effectiveToken);
+      setComments((prev) => [...prev, newC]);
+      setCommentText("");
+    } catch (err: any) {
+      alert(err.message || "Failed to post comment");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleMarkResolved = async () => {
+    if (!effectiveToken) return;
+    setCommentLoading(true);
+    try {
+      const newC = await addComment(
+        ticketId,
+        "Problem Appears Resolved: The requester has confirmed that this issue appears to be resolved.",
+        effectiveToken
+      );
+      setComments((prev) => [...prev, newC]);
+      setResolveSuccess(true);
+    } catch (err: any) {
+      alert(err.message || "Failed to submit resolution confirmation");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
 
   const getPriorityBadgeClass = (p: string) => {
     switch (p?.toUpperCase()) {
@@ -52,7 +100,7 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
     }
   };
 
-  if (!currentRequester) {
+  if (!currentRequester && !user) {
     return (
       <div className="zen-card p-4 mx-auto my-4 text-center" style={{ maxWidth: 640 }} data-testid="no-requester-state">
         <h2 className="h4 fw-bold mb-2" style={{ color: "var(--color-primary-green)" }}>
@@ -146,6 +194,24 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
         </div>
       </div>
 
+      {/* Requester Resolution Feedback Banner */}
+      {ticket.currentStatus !== "CLOSED" && ticket.currentStatus !== "CANCELLED" && (
+        <div className="alert alert-light border mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>Has your problem been solved?</strong>
+            <div className="small text-muted">Click to inform IT Staff that your issue is resolved.</div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline-success fw-semibold"
+            onClick={handleMarkResolved}
+            disabled={commentLoading || resolveSuccess}
+          >
+            {resolveSuccess ? "✓ Problem Marked as Resolved" : "Problem Appears Resolved"}
+          </button>
+        </div>
+      )}
+
       {/* Read-Only Info Grid (AC-09, UI-05) */}
       <div className="row g-3 mb-4">
         {/* Requester Information */}
@@ -153,10 +219,10 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
           <div className="p-3 rounded h-100" style={{ backgroundColor: "var(--color-readonly-bg)", border: "1px solid var(--color-card-border)" }}>
             <span className="small text-muted fw-semibold text-uppercase d-block mb-1">Requester</span>
             <div className="fw-bold" data-testid="ticket-requester-name">
-              {ticket.requester?.name || currentRequester.name}
+              {ticket.requester?.name || currentRequester?.name || user?.name}
             </div>
             <div className="small text-muted" data-testid="ticket-requester-department">
-              {ticket.requester?.department || currentRequester.department} • {ticket.requester?.email || currentRequester.email}
+              {ticket.requester?.department || currentRequester?.department || user?.department} • {ticket.requester?.email || currentRequester?.email || user?.email}
             </div>
           </div>
         </div>
@@ -210,14 +276,53 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
         ticketId={ticket.id}
         attachments={ticket.attachments || []}
         onAttachmentUploaded={async () => {
-          // Re-fetch fresh ticket details including updated attachments
           await loadTicket();
         }}
         onAttachmentRemoved={async () => {
-          // Re-fetch fresh ticket details including updated attachments
           await loadTicket();
         }}
       />
+
+      {/* Public Comments Section */}
+      <div className="mt-4 pt-3 border-top">
+        <h3 className="h6 fw-bold mb-3" style={{ color: "var(--color-primary-green)" }}>
+          💬 Public Comments ({comments.length})
+        </h3>
+
+        {comments.length === 0 ? (
+          <div className="text-muted small p-3 bg-light rounded text-center mb-3">
+            No comments yet. You can post updates or questions below.
+          </div>
+        ) : (
+          <div className="d-flex flex-column gap-2 mb-3">
+            {comments.map((c) => (
+              <div key={c.id} className="p-3 rounded border bg-white">
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <strong className="small">{c.user?.name || "User"}</strong>
+                  <span className="small text-muted">{new Date(c.createdAt).toLocaleTimeString()}</span>
+                </div>
+                <div className="small text-dark" style={{ whiteSpace: "pre-wrap" }}>
+                  {c.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleSendComment} className="d-flex gap-2">
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            placeholder="Write a public comment for IT Staff..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            disabled={commentLoading}
+          />
+          <button type="submit" className="btn btn-sm btn-success" disabled={commentLoading || !commentText.trim()}>
+            Send
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

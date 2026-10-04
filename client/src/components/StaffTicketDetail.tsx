@@ -12,7 +12,7 @@ import {
   addComment,
   fetchInternalNotes,
   addInternalNote,
-  fetchAdminUsers,
+  fetchStaffUsers,
   AuthUser,
   getAttachmentDownloadUrl,
 } from "../api.js";
@@ -49,13 +49,13 @@ export default function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetai
     try {
       const [tData, staffData, cData, nData] = await Promise.all([
         fetchStaffTicketDetail(ticketId, token),
-        fetchAdminUsers({ role: "IT_STAFF" }, token).catch(() => ({ data: [], pagination: {} as any })),
+        fetchStaffUsers(token).catch(() => []),
         fetchComments(ticketId, token).catch(() => []),
         fetchInternalNotes(ticketId, token).catch(() => []),
       ]);
 
       setTicket(tData);
-      setStaffUsers(staffData.data);
+      setStaffUsers(staffData);
       setComments(cData);
       setNotes(nData);
 

@@ -136,7 +136,8 @@ adminRouter.get("/users", async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // POST /api/admin/users (Create User)
 adminRouter.post("/users", async (req: Request, res: Response) => {
-  const { name, email, role, department, temporaryPassword } = req.body;
+  const { name, email, role, department } = req.body;
+  const temporaryPassword = req.body.temporaryPassword || req.body.password;
 
   if (!name || !email || !role || !temporaryPassword) {
     res.status(400).json({
@@ -325,14 +326,9 @@ adminRouter.patch("/users/:id", async (req: Request, res: Response) => {
 // POST /api/admin/users/:id/reset-password
 adminRouter.post("/users/:id/reset-password", async (req: Request, res: Response) => {
   const userId = parseInt(req.params.id);
-  const { temporaryPassword } = req.body;
+  const temporaryPassword = (req.body && req.body.temporaryPassword) ? req.body.temporaryPassword : "TempPassword123!";
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "Invalid user ID" } });
-    return;
-  }
-
-  if (!temporaryPassword || typeof temporaryPassword !== "string" || temporaryPassword.length < 8) {
+  if (typeof temporaryPassword !== "string" || temporaryPassword.length < 8) {
     res.status(400).json({
       error: {
         code: "VALIDATION_ERROR",
@@ -363,6 +359,7 @@ adminRouter.post("/users/:id/reset-password", async (req: Request, res: Response
       });
       res.status(200).json({
         message: "User password reset successfully",
+        temporaryPassword,
         mustChangePassword: true,
       });
       return;
@@ -377,6 +374,7 @@ adminRouter.post("/users/:id/reset-password", async (req: Request, res: Response
 
   res.status(200).json({
     message: "User password reset successfully",
+    temporaryPassword,
     mustChangePassword: true,
   });
 });

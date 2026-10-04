@@ -404,7 +404,7 @@ export async function fetchStaffTicketDetail(ticketId: number, token: string): P
   }
 
   const data = await res.json();
-  return data.data || data;
+  return data.ticket || data.data || data;
 }
 
 export async function assignTicketOwner(
@@ -430,7 +430,7 @@ export async function assignTicketOwner(
   }
 
   const data = await res.json();
-  return data.data;
+  return data.ticket || data.data || data;
 }
 
 export async function updateStaffPriority(
@@ -444,7 +444,7 @@ export async function updateStaffPriority(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ priority }),
+    body: JSON.stringify({ itPriority: priority, priority }),
   });
 
   if (!res.ok) {
@@ -456,7 +456,7 @@ export async function updateStaffPriority(
   }
 
   const data = await res.json();
-  return data.data;
+  return data.ticket || data.data || data;
 }
 
 export async function updateStaffStatus(
@@ -482,7 +482,21 @@ export async function updateStaffStatus(
   }
 
   const data = await res.json();
-  return data.data;
+  return data.ticket || data.data || data;
+}
+
+export async function fetchStaffUsers(token: string): Promise<AuthUser[]> {
+  const res = await fetch(`${API_URL}/api/staff/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || "Failed to fetch staff users");
+  }
+
+  const data = await res.json();
+  return data.data || [];
 }
 
 // ---------------------------------------------------------------------------
@@ -631,6 +645,7 @@ export async function createAdminUser(
     role: UserRole;
     department?: string;
     password?: string;
+    temporaryPassword?: string;
   },
   token: string
 ): Promise<{ user: AuthUser; temporaryPassword?: string }> {
@@ -676,7 +691,7 @@ export async function updateAdminUser(
   }
 
   const data = await res.json();
-  return data.data;
+  return data.user || data.data || data;
 }
 
 export async function resetAdminUserPassword(

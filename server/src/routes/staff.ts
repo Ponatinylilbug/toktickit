@@ -11,6 +11,40 @@ staffRouter.use(authMiddleware);
 staffRouter.use(requirePasswordChanged);
 staffRouter.use(requireRole("IT_STAFF", "ADMINISTRATOR"));
 
+// GET /api/staff/users (List active IT Staff and Admins for assignment dropdown)
+staffRouter.get("/users", async (req: Request, res: Response) => {
+  if (await isDbAvailable()) {
+    try {
+      const prisma = getPrisma();
+      if (prisma?.user) {
+        const staffUsers = await prisma.user.findMany({
+          where: {
+            role: { in: ["IT_STAFF", "ADMINISTRATOR"] },
+            isActive: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            department: true,
+            isActive: true,
+          },
+          orderBy: { name: "asc" },
+        });
+        res.status(200).json({ data: staffUsers });
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  const staffUsers = fallbackUsers
+    .filter((u) => ["IT_STAFF", "ADMINISTRATOR"].includes(u.role) && u.isActive)
+    .map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, department: u.department, isActive: u.isActive }));
+  res.status(200).json({ data: staffUsers });
+});
+
 // Fallback in-memory tickets for development or testing
 export const staffFallbackTickets: any[] = [
   {
@@ -355,7 +389,7 @@ staffRouter.patch("/tickets/:id/assign", async (req: Request, res: Response) => 
 // PATCH /api/staff/tickets/:id/priority (Update IT Priority)
 staffRouter.patch("/tickets/:id/priority", async (req: Request, res: Response) => {
   const ticketId = parseInt(req.params.id);
-  const { itPriority } = req.body;
+  const itPriority = req.body.itPriority || req.body.priority;
 
   const validPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
   if (!validPriorities.includes(itPriority)) {
