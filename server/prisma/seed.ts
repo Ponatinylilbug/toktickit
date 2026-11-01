@@ -185,6 +185,82 @@ async function main() {
   }
   console.log(`Seeded ${users.length} Unified Users (Admin, Staff, Requesters).`);
 
+  // 5. Seed Tickets and Actions Taken
+  const techUser = await prisma.user.findUnique({ where: { email: "staff1@toktickit.local" } });
+  const techUser2 = await prisma.user.findUnique({ where: { email: "staff2@toktickit.local" } });
+  const reqUser1 = await prisma.user.findUnique({ where: { email: "jennifer.anderson@example.com" } });
+  const catNetwork = await prisma.category.findUnique({ where: { name: "Network" } });
+  const catHardware = await prisma.category.findUnique({ where: { name: "Hardware" } });
+  const sysWifi = await prisma.relatedSystem.findUnique({ where: { name: "Campus Wi-Fi" } });
+  const sysLaptop = await prisma.relatedSystem.findUnique({ where: { name: "Corporate Laptop" } });
+
+  if (techUser && reqUser1 && catNetwork && sysWifi) {
+    const t1 = await prisma.ticket.upsert({
+      where: { ticketNumber: "TKT-2026-000001" },
+      update: {},
+      create: {
+        ticketNumber: "TKT-2026-000001",
+        summary: "Cannot connect to Campus Wi-Fi in building B",
+        description: "Wi-Fi signals drop every 5 minutes when connecting from the 3rd floor lab.",
+        requestedPriority: "HIGH",
+        itPriority: "HIGH",
+        currentStatus: "IN_PROGRESS",
+        requesterId: reqUser1.id,
+        ownerId: techUser.id,
+        categoryId: catNetwork.id,
+        relatedSystemId: sysWifi.id,
+      },
+    });
+
+    const actionsCount = await prisma.actionTaken.count({ where: { ticketId: t1.id } });
+    if (actionsCount === 0) {
+      await prisma.actionTaken.createMany({
+        data: [
+          {
+            ticketId: t1.id,
+            performedById: techUser.id,
+            actionDate: new Date(Date.now() - 3600000 * 18),
+            description: "Replaced faulty Cisco AP-302 access point on 3rd floor.",
+            result: "New access point booted and registered with wireless controller.",
+            followUpRequired: true,
+            followUpNote: "Verify Wi-Fi channel coverage during peak class hours.",
+            attachmentNotes: "ap_replacement_log.pdf",
+          },
+          {
+            ticketId: t1.id,
+            performedById: techUser2 ? techUser2.id : techUser.id,
+            actionDate: new Date(Date.now() - 3600000 * 10),
+            description: "Conducted RF spectrum sweep and adjusted transmit power to 18 dBm.",
+            result: "Signal-to-noise ratio improved by 14 dB across all endpoints.",
+            followUpRequired: false,
+            followUpNote: null,
+            attachmentNotes: "rf_survey_heatmap.png",
+          },
+        ],
+      });
+      console.log("Seeded Actions Taken for Ticket 1.");
+    }
+  }
+
+  if (reqUser1 && catHardware && sysLaptop) {
+    await prisma.ticket.upsert({
+      where: { ticketNumber: "TKT-2026-000002" },
+      update: {},
+      create: {
+        ticketNumber: "TKT-2026-000002",
+        summary: "Secondary monitor displays flickering horizontal lines",
+        description: "Occurs intermittently when connected via USB-C docking station.",
+        requestedPriority: "MEDIUM",
+        itPriority: "LOW",
+        currentStatus: "NEW",
+        requesterId: reqUser1.id,
+        ownerId: null,
+        categoryId: catHardware.id,
+        relatedSystemId: sysLaptop.id,
+      },
+    });
+  }
+
   console.log("Database seeded successfully and idempotently.");
 }
 
