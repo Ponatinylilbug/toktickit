@@ -16,6 +16,7 @@ import {
   AuthUser,
   getAttachmentDownloadUrl,
 } from "../api.js";
+import ActionsTakenSection from "./ActionsTakenSection.js";
 
 interface StaffTicketDetailProps {
   ticketId: number;
@@ -386,6 +387,9 @@ export default function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetai
           </div>
         </div>
       </div>
+
+      {/* Actions Taken Section */}
+      <ActionsTakenSection ticketId={ticket.id} />
 
       {/* Communication Section: Comments & Internal Notes */}
       <div className="mt-4 pt-3 border-top">
