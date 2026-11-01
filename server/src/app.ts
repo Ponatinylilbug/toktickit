@@ -11,17 +11,19 @@ import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { notesRouter } from "./routes/notes.js";
 import { adminRouter } from "./routes/admin.js";
+import { actionsRouter } from "./routes/actions.js";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Mount Lab 3 API Routers
+// Mount Lab 3 & Lab 4 API Routers
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
 app.use("/api/tickets", notesRouter);
+app.use("/api/tickets", actionsRouter);
 app.use("/api/admin", adminRouter);
 
 const uploadsDir = path.resolve("uploads");

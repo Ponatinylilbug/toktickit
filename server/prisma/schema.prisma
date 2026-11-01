@@ -54,6 +54,7 @@ model User {
   ticketsAssigned    Ticket[]       @relation("StaffAssignedTickets")
   comments           Comment[]
   notes              InternalNote[]
+  actionsTaken       ActionTaken[]  @relation("UserActionsTaken")
 
   @@index([role])
   @@index([isActive])
@@ -114,6 +115,7 @@ model Ticket {
   attachments       Attachment[]
   comments          Comment[]
   notes             InternalNote[]
+  actionsTaken      ActionTaken[]
 
   @@index([requesterId])
   @@index([ownerId])
@@ -175,4 +177,26 @@ model InternalNote {
 
   @@index([ticketId])
   @@index([authorId])
+}
+
+// ---------------------------------------------------------------------------
+// Action Taken (Parent-child work record under Ticket)
+model ActionTaken {
+  id               Int      @id @default(autoincrement())
+  ticketId         Int
+  performedById    Int
+  actionDate       DateTime @default(now())
+  description      String
+  result           String
+  followUpRequired Boolean  @default(false)
+  followUpNote     String?
+  attachmentNotes  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ticket           Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy      User     @relation("UserActionsTaken", fields: [performedById], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([performedById])
 }
