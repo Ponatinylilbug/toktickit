@@ -9,7 +9,9 @@ export type NavTab =
   | "ticket-detail"
   | "staff-queue"
   | "staff-detail"
-  | "admin-users";
+  | "admin-users"
+  | "requester-dashboard"
+  | "staff-dashboard";
 
 interface HeaderProps {
   activeTab?: NavTab;
@@ -36,6 +38,17 @@ export default function Header({ activeTab = "my-tickets", onTabChange, onShowLo
         <nav className="d-flex align-items-center gap-2 ms-3">
           {(!authUser || authUser.role === "REQUESTER") && (
             <>
+              {authUser && (
+                <button
+                  type="button"
+                  className={`btn btn-sm ${activeTab === "requester-dashboard" ? "btn-light fw-bold" : "btn-outline-light"}`}
+                  style={{ fontSize: "0.875rem", borderRadius: "6px" }}
+                  onClick={() => onTabChange?.("requester-dashboard")}
+                  data-testid="nav-requester-dashboard"
+                >
+                  Dashboard
+                </button>
+              )}
               <button
                 type="button"
                 className={`btn btn-sm ${activeTab === "my-tickets" ? "btn-light fw-bold" : "btn-outline-light"}`}
@@ -58,15 +71,26 @@ export default function Header({ activeTab = "my-tickets", onTabChange, onShowLo
           )}
 
           {authUser && (authUser.role === "IT_STAFF" || authUser.role === "ADMINISTRATOR") && (
-            <button
-              type="button"
-              className={`btn btn-sm ${activeTab === "staff-queue" || activeTab === "staff-detail" ? "btn-light fw-bold" : "btn-outline-light"}`}
-              style={{ fontSize: "0.875rem", borderRadius: "6px" }}
-              onClick={() => onTabChange?.("staff-queue")}
-              data-testid="nav-staff-queue"
-            >
-              Ticket Queue
-            </button>
+            <>
+              <button
+                type="button"
+                className={`btn btn-sm ${activeTab === "staff-dashboard" ? "btn-light fw-bold" : "btn-outline-light"}`}
+                style={{ fontSize: "0.875rem", borderRadius: "6px" }}
+                onClick={() => onTabChange?.("staff-dashboard")}
+                data-testid="nav-staff-dashboard"
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${activeTab === "staff-queue" || activeTab === "staff-detail" ? "btn-light fw-bold" : "btn-outline-light"}`}
+                style={{ fontSize: "0.875rem", borderRadius: "6px" }}
+                onClick={() => onTabChange?.("staff-queue")}
+                data-testid="nav-staff-queue"
+              >
+                Ticket Queue
+              </button>
+            </>
           )}
 
           {authUser && authUser.role === "ADMINISTRATOR" && (
