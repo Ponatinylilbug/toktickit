@@ -3,6 +3,7 @@ import { useRequester } from "../context/RequesterContext.js";
 import { useAuth } from "../context/AuthContext.js";
 import { Ticket, fetchTicketDetail, fetchComments, addComment, CommentItem } from "../api.js";
 import AttachmentSection from "./AttachmentSection.js";
+import ActionsTakenSection from "./ActionsTakenSection.js";
 
 interface RequesterTicketDetailProps {
   ticketId: number;
@@ -206,8 +207,9 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
             className="btn btn-outline-success fw-semibold"
             onClick={handleMarkResolved}
             disabled={commentLoading || resolveSuccess}
+            data-testid="mark-resolved-button"
           >
-            {resolveSuccess ? "✓ Problem Marked as Resolved" : "Problem Appears Resolved"}
+            {resolveSuccess ? <span data-testid="resolve-success-message">✓ Problem Marked as Resolved</span> : "Problem Appears Resolved"}
           </button>
         </div>
       )}
@@ -282,6 +284,9 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
           await loadTicket();
         }}
       />
+
+      {/* Actions Taken Section (Read-only for Requesters) */}
+      <ActionsTakenSection ticketId={ticket.id} />
 
       {/* Public Comments Section */}
       <div className="mt-4 pt-3 border-top">

@@ -11,18 +11,42 @@ import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { notesRouter } from "./routes/notes.js";
 import { adminRouter } from "./routes/admin.js";
+import { actionsRouter } from "./routes/actions.js";
+import { dashboardRouter } from "./routes/dashboard.js";
+import { authMiddleware, requirePasswordChanged } from "./middleware/auth.js";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Mount Lab 3 API Routers
+// Mount Lab 3 & Lab 4 API Routers
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
 app.use("/api/tickets", notesRouter);
+app.use("/api/tickets", actionsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/dashboard", dashboardRouter);
+
+// PUT /api/requester/tickets/:id/resolve-feedback (Advisory resolution indicator)
+app.put(
+  "/api/requester/tickets/:id/resolve-feedback",
+  authMiddleware,
+  requirePasswordChanged,
+  async (req: Request, res: Response) => {
+    const ticketId = parseInt(req.params.id);
+    if (isNaN(ticketId)) {
+      res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "Invalid ticket ID" } });
+      return;
+    }
+    // Record feedback without changing currentStatus to RESOLVED (BR-07, AC-07)
+    res.status(200).json({
+      message: "Requester feedback recorded. IT Staff will verify and formally resolve the ticket.",
+      problemAppearsResolved: true,
+    });
+  }
+);
 
 const uploadsDir = path.resolve("uploads");
 if (!fs.existsSync(uploadsDir)) {

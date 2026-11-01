@@ -12,6 +12,8 @@ import ChangePasswordPage from "./components/ChangePasswordPage.js";
 import StaffTicketQueue from "./components/StaffTicketQueue.js";
 import StaffTicketDetail from "./components/StaffTicketDetail.js";
 import UserManagement from "./components/UserManagement.js";
+import RequesterDashboard from "./components/RequesterDashboard.js";
+import StaffDashboard from "./components/StaffDashboard.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
@@ -90,6 +92,16 @@ function AppContent() {
   const handleBackToStaffQueue = () => {
     setSelectedTicketId(null);
     setActiveTab("staff-queue");
+  };
+
+  const handleDashboardNavigate = (tab: NavTab, filterOrId?: string) => {
+    if (filterOrId) {
+      const num = parseInt(filterOrId, 10);
+      if (!isNaN(num)) {
+        setSelectedTicketId(num);
+      }
+    }
+    setActiveTab(tab);
   };
 
   // If user is required to change password, lock into ChangePasswordPage
@@ -206,6 +218,16 @@ function AppContent() {
               </div>
             )}
           </>
+        )}
+
+        {/* Tab 0a: Staff Dashboard */}
+        {activeTab === "staff-dashboard" && (
+          <StaffDashboard onNavigate={handleDashboardNavigate} />
+        )}
+
+        {/* Tab 0b: Requester Dashboard */}
+        {activeTab === "requester-dashboard" && (
+          <RequesterDashboard onNavigate={handleDashboardNavigate} />
         )}
 
         {/* Tab 1: Staff Ticket Queue */}

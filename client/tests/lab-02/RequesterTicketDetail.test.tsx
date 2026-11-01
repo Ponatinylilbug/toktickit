@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import RequesterTicketDetail from "../../src/components/RequesterTicketDetail.js";
 import * as api from "../../src/api.js";
 import { RequesterProvider } from "../../src/context/RequesterContext.js";
+import { AuthProvider } from "../../src/context/AuthContext.js";
 
 const mockRequester: api.RequesterUser = {
   id: 1,
@@ -53,9 +54,11 @@ describe("RequesterTicketDetail Component (UI-05, AC-09, AC-10, AC-12)", () => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(mockTicketDetail);
 
     render(
-      <RequesterProvider>
-        <RequesterTicketDetail ticketId={101} />
-      </RequesterProvider>
+      <AuthProvider>
+        <RequesterProvider>
+          <RequesterTicketDetail ticketId={101} />
+        </RequesterProvider>
+      </AuthProvider>
     );
 
     expect(await screen.findByTestId("ticket-detail-number")).toHaveTextContent("TKT-2026-000101");
@@ -77,9 +80,11 @@ describe("RequesterTicketDetail Component (UI-05, AC-09, AC-10, AC-12)", () => {
     });
 
     render(
-      <RequesterProvider>
-        <RequesterTicketDetail ticketId={101} />
-      </RequesterProvider>
+      <AuthProvider>
+        <RequesterProvider>
+          <RequesterTicketDetail ticketId={101} />
+        </RequesterProvider>
+      </AuthProvider>
     );
 
     const removeBtn = await screen.findByTestId("remove-button-501");
@@ -110,9 +115,11 @@ describe("RequesterTicketDetail Component (UI-05, AC-09, AC-10, AC-12)", () => {
     vi.spyOn(api, "fetchTicketDetail").mockRejectedValue(forbiddenError);
 
     render(
-      <RequesterProvider>
-        <RequesterTicketDetail ticketId={999} />
-      </RequesterProvider>
+      <AuthProvider>
+        <RequesterProvider>
+          <RequesterTicketDetail ticketId={999} />
+        </RequesterProvider>
+      </AuthProvider>
     );
 
     expect(await screen.findByTestId("ticket-forbidden-error")).toBeInTheDocument();

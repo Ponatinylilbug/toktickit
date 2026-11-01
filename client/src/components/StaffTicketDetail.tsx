@@ -16,6 +16,7 @@ import {
   AuthUser,
   getAttachmentDownloadUrl,
 } from "../api.js";
+import ActionsTakenSection from "./ActionsTakenSection.js";
 
 interface StaffTicketDetailProps {
   ticketId: number;
@@ -122,12 +123,19 @@ export default function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetai
     setActionLoading(true);
     setActionMessage(null);
     try {
-      const updated = await updateStaffStatus(ticketId, newStatus, token);
+      const updated = await updateStaffStatus(ticketId, newStatus, token, ticket?.updatedAt);
       setTicket(updated);
       setSelectedStatus(updated.currentStatus);
       setActionMessage({ type: "success", text: `Status updated to ${newStatus.replace(/_/g, " ")}.` });
     } catch (err: any) {
-      setActionMessage({ type: "error", text: err.message || "Failed to update status." });
+      if (err.status === 409 || err.code === "STALE_UPDATE_CONFLICT") {
+        setActionMessage({
+          type: "error",
+          text: "Conflict: This ticket was modified by another process. Please refresh before retrying.",
+        });
+      } else {
+        setActionMessage({ type: "error", text: err.message || "Failed to update status." });
+      }
     } finally {
       setActionLoading(false);
     }
@@ -386,6 +394,9 @@ export default function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetai
           </div>
         </div>
       </div>
+
+      {/* Actions Taken Section */}
+      <ActionsTakenSection ticketId={ticket.id} />
 
       {/* Communication Section: Comments & Internal Notes */}
       <div className="mt-4 pt-3 border-top">
