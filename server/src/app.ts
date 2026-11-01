@@ -12,6 +12,7 @@ import { commentsRouter } from "./routes/comments.js";
 import { notesRouter } from "./routes/notes.js";
 import { adminRouter } from "./routes/admin.js";
 import { actionsRouter } from "./routes/actions.js";
+import { dashboardRouter } from "./routes/dashboard.js";
 import { authMiddleware, requirePasswordChanged } from "./middleware/auth.js";
 
 export const app = express();
@@ -26,6 +27,7 @@ app.use("/api/tickets", commentsRouter);
 app.use("/api/tickets", notesRouter);
 app.use("/api/tickets", actionsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // PUT /api/requester/tickets/:id/resolve-feedback (Advisory resolution indicator)
 app.put(

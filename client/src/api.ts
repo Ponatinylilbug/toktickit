@@ -808,4 +808,68 @@ export async function updateActionTaken(
   return data.action || data.data || data;
 }
 
+// ── Dashboard Types & API ──
 
+export interface RequesterDashboardMetrics {
+  totalOpen: number;
+  inProgress: number;
+  waitingForRequester: number;
+  resolved: number;
+  closed: number;
+}
+
+export interface RequesterDashboardData {
+  metrics: RequesterDashboardMetrics;
+  recentTickets: Array<{
+    id: number;
+    ticketNumber: string;
+    summary: string;
+    currentStatus: string;
+    requestedPriority: string;
+    updatedAt: string;
+  }>;
+}
+
+export interface StaffDashboardMetrics {
+  new: number;
+  open: number;
+  inProgress: number;
+  waitingForRequester: number;
+  myAssigned: number;
+  unassigned: number;
+}
+
+export interface StaffDashboardData {
+  metrics: StaffDashboardMetrics;
+  recentTickets: Array<{
+    id: number;
+    ticketNumber: string;
+    summary: string;
+    currentStatus: string;
+    actualPriority: string;
+    updatedAt: string;
+    owner?: { id: number; name: string } | null;
+  }>;
+}
+
+export async function fetchRequesterDashboard(token: string): Promise<RequesterDashboardData> {
+  const res = await fetch(`${API_URL}/api/dashboard/requester`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || "Failed to load requester dashboard");
+  }
+  return res.json();
+}
+
+export async function fetchStaffDashboard(token: string): Promise<StaffDashboardData> {
+  const res = await fetch(`${API_URL}/api/dashboard/staff`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || "Failed to load staff dashboard");
+  }
+  return res.json();
+}
