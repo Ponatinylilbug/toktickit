@@ -47,6 +47,7 @@ describe("Lab 4 Ticket Workflow & Resolution UI (TEST-UI-05, AC-07..09, BR-07..0
       name: "Jennifer Anderson",
       email: "jennifer.anderson@example.com",
       department: "Human Resources",
+      isActive: true,
     },
     category: { id: 4, name: "Network" },
     relatedSystem: { id: 3, name: "Wi-Fi Access Points" },

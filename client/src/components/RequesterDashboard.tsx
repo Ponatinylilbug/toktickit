@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext.js";
 import { fetchRequesterDashboard, RequesterDashboardData } from "../api.js";
+import { NavTab } from "./Header.js";
 
 interface RequesterDashboardProps {
-  onNavigate?: (tab: string, filter?: string) => void;
+  onNavigate?: (tab: NavTab, filter?: string) => void;
 }
 
 const statusBadgeClass = (status: string): string => {
