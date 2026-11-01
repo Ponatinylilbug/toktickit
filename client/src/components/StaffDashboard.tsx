@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext.js";
 import { fetchStaffDashboard, StaffDashboardData } from "../api.js";
+import { NavTab } from "./Header.js";
 
 interface StaffDashboardProps {
-  onNavigate?: (tab: string, filter?: string) => void;
+  onNavigate?: (tab: NavTab, filter?: string) => void;
 }
 
 const statusBadgeClass = (status: string): string => {

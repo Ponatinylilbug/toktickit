@@ -94,9 +94,12 @@ function AppContent() {
     setActiveTab("staff-queue");
   };
 
-  const handleDashboardNavigate = (tab: NavTab, ticketId?: number) => {
-    if (ticketId) {
-      setSelectedTicketId(ticketId);
+  const handleDashboardNavigate = (tab: NavTab, filterOrId?: string) => {
+    if (filterOrId) {
+      const num = parseInt(filterOrId, 10);
+      if (!isNaN(num)) {
+        setSelectedTicketId(num);
+      }
     }
     setActiveTab(tab);
   };
