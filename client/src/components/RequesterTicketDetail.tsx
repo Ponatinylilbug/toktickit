@@ -207,8 +207,9 @@ export default function RequesterTicketDetail({ ticketId, onBack }: RequesterTic
             className="btn btn-outline-success fw-semibold"
             onClick={handleMarkResolved}
             disabled={commentLoading || resolveSuccess}
+            data-testid="mark-resolved-button"
           >
-            {resolveSuccess ? "✓ Problem Marked as Resolved" : "Problem Appears Resolved"}
+            {resolveSuccess ? <span data-testid="resolve-success-message">✓ Problem Marked as Resolved</span> : "Problem Appears Resolved"}
           </button>
         </div>
       )}

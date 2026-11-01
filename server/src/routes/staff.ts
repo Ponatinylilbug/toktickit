@@ -437,10 +437,22 @@ staffRouter.patch("/tickets/:id/priority", async (req: Request, res: Response) =
 });
 
 // ---------------------------------------------------------------------------
-// PATCH /api/staff/tickets/:id/status (Status Transitions)
-staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => {
+// Permitted Ticket Status Transitions (BR-08)
+export const PERMITTED_TRANSITIONS: Record<string, string[]> = {
+  NEW: ["OPEN", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  CLOSED: [],
+  REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  CANCELLED: [],
+};
+
+// Handler for status transitions supporting both PUT and PATCH
+async function handleStatusTransition(req: Request, res: Response) {
   const ticketId = parseInt(req.params.id);
-  const { status } = req.body;
+  const { status, expectedUpdatedAt } = req.body;
 
   const validStatuses = [
     "NEW",
@@ -466,17 +478,53 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
   if (await isDbAvailable()) {
     try {
       const prisma = getPrisma();
-    if (prisma?.ticket) {
-      const updated = await prisma.ticket.update({
-        where: { id: ticketId },
-        data: { currentStatus: status },
-      });
-      res.status(200).json({
-        message: "Ticket status updated",
-        ticket: updated,
-      });
-      return;
-    }
+      if (prisma?.ticket) {
+        const existing = await prisma.ticket.findUnique({ where: { id: ticketId } });
+        if (!existing) {
+          res.status(404).json({ error: { code: "NOT_FOUND", message: "Ticket not found" } });
+          return;
+        }
+
+        // Concurrency check (BR-09, AC-09)
+        if (expectedUpdatedAt) {
+          const expectedMs = new Date(expectedUpdatedAt).getTime();
+          const currentMs = new Date(existing.updatedAt).getTime();
+          if (expectedMs !== currentMs) {
+            res.status(409).json({
+              error: {
+                code: "STALE_UPDATE_CONFLICT",
+                message: "Ticket has been modified by another process. Please refresh and retry.",
+              },
+            });
+            return;
+          }
+        }
+
+        // Permitted transition check (BR-08, AC-08)
+        const currentStatus = existing.currentStatus;
+        if (currentStatus !== status) {
+          const allowedNext = PERMITTED_TRANSITIONS[currentStatus] || [];
+          if (!allowedNext.includes(status)) {
+            res.status(400).json({
+              error: {
+                code: "ILLEGAL_TRANSITION",
+                message: `Transition from ${currentStatus} to ${status} is not permitted. Allowed: ${allowedNext.join(", ") || "none"}`,
+              },
+            });
+            return;
+          }
+        }
+
+        const updated = await prisma.ticket.update({
+          where: { id: ticketId },
+          data: { currentStatus: status },
+        });
+        res.status(200).json({
+          message: "Ticket status updated",
+          ticket: updated,
+        });
+        return;
+      }
     } catch {
       // Database unavailable, fallback
     }
@@ -488,6 +536,36 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
     return;
   }
 
+  // Concurrency check (BR-09, AC-09)
+  if (expectedUpdatedAt) {
+    const expectedMs = new Date(expectedUpdatedAt).getTime();
+    const currentMs = new Date(ticket.updatedAt).getTime();
+    if (expectedMs !== currentMs) {
+      res.status(409).json({
+        error: {
+          code: "STALE_UPDATE_CONFLICT",
+          message: "Ticket has been modified by another process. Please refresh and retry.",
+        },
+      });
+      return;
+    }
+  }
+
+  // Permitted transition check (BR-08, AC-08)
+  const currentStatus = ticket.currentStatus;
+  if (currentStatus !== status) {
+    const allowedNext = PERMITTED_TRANSITIONS[currentStatus] || [];
+    if (!allowedNext.includes(status)) {
+      res.status(400).json({
+        error: {
+          code: "ILLEGAL_TRANSITION",
+          message: `Transition from ${currentStatus} to ${status} is not permitted. Allowed: ${allowedNext.join(", ") || "none"}`,
+        },
+      });
+      return;
+    }
+  }
+
   ticket.currentStatus = status;
   ticket.updatedAt = new Date().toISOString();
 
@@ -495,4 +573,8 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
     message: "Ticket status updated",
     ticket,
   });
-});
+}
+
+// Support both PATCH and PUT for /api/staff/tickets/:id/status
+staffRouter.patch("/tickets/:id/status", handleStatusTransition);
+staffRouter.put("/tickets/:id/status", handleStatusTransition);
